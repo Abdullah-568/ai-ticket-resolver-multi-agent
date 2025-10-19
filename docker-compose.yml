@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  backend:
+    build: ./backend
+    container_name: ai_ticket_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URL=mongodb://host.docker.internal:27019/
+      - OPENAI_API_KEY=your_api_key_here
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    container_name: ai_ticket_frontend
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
