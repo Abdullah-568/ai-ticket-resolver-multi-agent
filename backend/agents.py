@@ -11,12 +11,21 @@ llm=ChatOpenAI(model="gpt-4o-mini",temperature=0)
 
 def classify_agent(state:TicketState):
     text=state["ticket_text"]
-    prompt=f"""Classify this customer support ticket into
-    -billing
-    -technical
-    -General
-    Ticket:{text}
-    Return only the category name"""
+    prompt=f"""
+    You are an intelligent support ticket classifier.
+
+    Task:
+    Analyze the following customer support ticket and classify it into one of these categories:
+    - Billing → issues related to payments, invoices, refunds, subscriptions.
+    - Technical → issues with app errors, bugs, connectivity, or system features.
+    - General → questions, suggestions, or feedback not related to billing or technical issues.
+
+    Ticket:
+    "{text}"
+
+    Output:
+    Return only the category name (Billing / Technical / General).
+    """
 
     classification=llm.invoke(prompt).content
     state["classification"]=classification.strip()
@@ -26,10 +35,19 @@ def respond_agent(state:TicketState):
     text=state["ticket_state"]
     category=state["classification"]
     prompt = f"""
-    You are a helpful customer support assistant.
-    The ticket category is {category}.
-    Write a clear, polite, and concise response to this user:
+    You are a helpful and empathetic AI support representative.
+
+    Category: {category}
+    Customer Ticket:
     "{text}"
+
+    Task:
+    - Write a polite and natural human-like response.
+    - Keep it short (2–3 paragraphs).
+    - Offer clear next steps or assurance, depending on the category.
+    - Maintain professionalism and friendliness in tone.
+
+    Response:
     """
     response=llm.invoke(prompt).content
     state["response"]=response.strip()
@@ -38,13 +56,23 @@ def respond_agent(state:TicketState):
 def review_agent(state: TicketState):
     resp = state["response"]
     prompt = f"""
-    You are a senior QA reviewer. Check this reply for:
-    - Politeness
-    - Clarity
-    - Usefulness
+    You are a senior QA reviewer evaluating customer support replies.
 
-    Suggest improvements briefly if needed:
+    Evaluate the following response for:
+    - Tone: Polite, professional, and empathetic?
+    - Clarity: Easy to read and understand?
+    - Helpfulness: Provides a clear next step or useful information?
+
+    Provide:
+    - A rating (1–10)
+    - 2–3 lines of constructive feedback for improvement.
+
+    Response to review:
     {resp}
+
+    Output format:
+    Rating: <number>/10
+    Feedback: <your comments>
     """
     review = llm.invoke(prompt).content
     state["review"] = review.strip()
@@ -82,4 +110,5 @@ def run_agent_pipeline(ticket_text: str):
 
 
     
+
 
